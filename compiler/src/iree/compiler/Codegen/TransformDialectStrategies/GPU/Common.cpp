@@ -444,7 +444,7 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
     auto strategyBuilder_0 = [&](ImplicitLocOpBuilder &b, Value variant) {
       auto strategy_0 = SmallReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
-      return buildSmallReductionStrategy(b, variant, strategy);
+      return buildSmallReductionStrategy(b, variant, strategy_0);
     }
     mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder_0);
   }
@@ -453,7 +453,7 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
     auto strategyBuilder_1 = [&](ImplicitLocOpBuilder &b, Value variant) {
       auto strategy_1 = StagedReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
-      return buildStagedReductionStrategy(b, variant, strategy);
+      return buildStagedReductionStrategy(b, variant, strategy_1);
     }
     mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder_1);
   }
