@@ -438,18 +438,24 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
   //    return llvm_unreachable("Unknown strategy");
   //  }
   //};
-  ImplicitLocOpBuilder &b; 
-  Value variant;
+
   ReductionConfig reductionConfig = getReductionConfig(captures, gpuModel);
   if (reductionConfig.strategy == ReductionStrategy::Small) {
-    auto strategy_0 = SmallReductionStrategy::create(op->getContext(), captures,
+    auto strategyBuilder_0 = [&](ImplicitLocOpBuilder &b, Value variant) {
+      auto strategy_0 = SmallReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
-    mlir::iree_compiler::createTransformRegion(entryPoint, buildSmallReductionStrategy(b, variant, strategy_0));
+      return buildSmallReductionStrategy(b, variant, strategy);
+    }
+    mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder_0);
   }
+
   if (reductionConfig.strategy == ReductionStrategy::Staged) {
-    auto strategy_1 = StagedReductionStrategy::create(
-          op->getContext(), captures, reductionConfig);
-    mlir::iree_compiler::createTransformRegion(entryPoint, buildSmallReductionStrategy(b, variant, strategy_1));
+    auto strategyBuilder_1 = [&](ImplicitLocOpBuilder &b, Value variant) {
+      auto strategy_1 = StagedReductionStrategy::create(op->getContext(), captures,
+                                                     reductionConfig);
+      return buildStagedReductionStrategy(b, variant, strategy);
+    }
+    mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder_1);
   }
   // 3. Build strategy embedded into the IR.
   //mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder);
