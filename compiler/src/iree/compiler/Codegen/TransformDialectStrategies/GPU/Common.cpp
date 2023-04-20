@@ -422,24 +422,37 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
 
   // 2. Construct the configuration and the strategy builder.
   // TODO: Generalize along the HW axis.
-  auto strategyBuilder = [&](ImplicitLocOpBuilder &b, Value variant) {
-    ReductionConfig reductionConfig = getReductionConfig(captures, gpuModel);
-    if (reductionConfig.strategy == ReductionStrategy::Small) {
-      auto strategy = SmallReductionStrategy::create(op->getContext(), captures,
-                                                     reductionConfig);
-      return buildSmallReductionStrategy(b, variant, strategy);
-    } else if (reductionConfig.strategy == ReductionStrategy::Staged) {
+  
+  //auto strategyBuilder = [&](ImplicitLocOpBuilder &b, Value variant) {
+  //  ReductionConfig reductionConfig = getReductionConfig(captures, gpuModel);
+  //  if (reductionConfig.strategy == ReductionStrategy::Small) {
+  //    auto strategy = SmallReductionStrategy::create(op->getContext(), captures,
+  //                                                   reductionConfig);
+  //    return buildSmallReductionStrategy(b, variant, strategy);
+  //  } else if (reductionConfig.strategy == ReductionStrategy::Staged) {
       // Otherwise, always fallback to the staged strategy.
-      auto strategy = StagedReductionStrategy::create(
+  //    auto strategy = StagedReductionStrategy::create(
+  //        op->getContext(), captures, reductionConfig);
+  //    return buildStagedReductionStrategy(b, variant, strategy);
+  //  } else {
+  //    return llvm_unreachable("Unknown strategy");
+  //  }
+  //};
+  ImplicitLocOpBuilder &b; 
+  Value variant;
+  ReductionConfig reductionConfig = getReductionConfig(captures, gpuModel);
+  if (reductionConfig.strategy == ReductionStrategy::Small) {
+    auto strategy_0 = SmallReductionStrategy::create(op->getContext(), captures,
+                                                     reductionConfig);
+    mlir::iree_compiler::createTransformRegion(entryPoint, buildSmallReductionStrategy(b, variant, strategy_0));
+  }
+  if (reductionConfig.strategy == ReductionStrategy::Staged) {
+    auto strategy_1 = StagedReductionStrategy::create(
           op->getContext(), captures, reductionConfig);
-      return buildStagedReductionStrategy(b, variant, strategy);
-    } else {
-      return llvm_unreachable("Unknown strategy");
-    }
-  };
-
+    mlir::iree_compiler::createTransformRegion(entryPoint, buildSmallReductionStrategy(b, variant, strategy_1));
+  }
   // 3. Build strategy embedded into the IR.
-  mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder);
+  //mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder);
 
   return success();
 }
