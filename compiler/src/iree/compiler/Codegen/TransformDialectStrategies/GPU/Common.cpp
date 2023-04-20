@@ -445,7 +445,7 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
       auto strategy_0 = SmallReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
       return buildSmallReductionStrategy(b, variant, strategy_0);
-    }
+    };
     mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder_0);
   }
 
@@ -454,7 +454,7 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
       auto strategy_1 = StagedReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
       return buildStagedReductionStrategy(b, variant, strategy_1);
-    }
+    };
     mlir::iree_compiler::createTransformRegion(entryPoint, strategyBuilder_1);
   }
   // 3. Build strategy embedded into the IR.
