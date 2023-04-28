@@ -177,7 +177,7 @@ Value mlir::iree_compiler::gpu::buildDistributeVectors(ImplicitLocOpBuilder &b,
 void mlir::iree_compiler::gpu::
     build1DSplittingStrategyWithOptionalThreadMapping(
         ImplicitLocOpBuilder &b, Value isolatedParentOpH, Value opH,
-        int64_t rank, int64_t mostMinorDim, SmallVector<int64_t> opSizes,
+        int64_t rank, int64_t mostMinorDim, SmallVector<int64_t> opSizes, bool isTrail,
         int64_t numThreads, Attribute mappingAttr, int64_t maxVectorSize) {
   // Poor man's handling of optionality in C++. Will need to be converted to
   // proper transform dialect filters or handling of emptiness.
@@ -441,6 +441,19 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
 
   ReductionConfig reductionConfig = getReductionConfig(captures, gpuModel);
   if (reductionConfig.strategy == ReductionStrategy::Small) {
+   for (OpOperand &operand : op->getOpOperands()) {
+      auto type = operand.get().getType().dyn_cast<ShapedType>();
+      if (!type) continue;
+      if (!type.hasStaticShape()) llvm::dbgs()<< " This is dynamic op \n";
+    }
+   llvm::dbgs()<< op->getOperandTypes().size() << " is the size! ";
+
+    for (auto operand : op->getOperandTypes()) {
+        //auto shape_type = operand.getType().dyn_cast<ShapedType>();
+        llvm::dbgs()<< operand << " debug ";
+    }
+    llvm::dbgs()<< "\n";
+    return failure();
     auto strategyBuilder_0 = [&](ImplicitLocOpBuilder &b, Value variant) {
       auto strategy_0 = SmallReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
@@ -450,6 +463,7 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
   }
 
   if (reductionConfig.strategy == ReductionStrategy::Staged) {
+    //return failure();
     auto strategyBuilder_1 = [&](ImplicitLocOpBuilder &b, Value variant) {
       auto strategy_1 = StagedReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);

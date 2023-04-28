@@ -137,6 +137,7 @@ static void buildSmallReductionStrategyThreadDistribution(
       // TODO: capture and generalize mostMinorDim.
       /*mostMinorDim=*/strategy.captures.reductionRank - 1,
       /*opSizes=*/strategy.captures.reductionOpSizes,
+      /*isTrail*/ false,
       /*numThreads=*/1);
 
   // 3. apply the 1d splitting strategy to the trailing elementwise.
@@ -148,6 +149,7 @@ static void buildSmallReductionStrategyThreadDistribution(
       // TODO: capture and generalize mostMinorDim.
       /*mostMinorDim=*/strategy.captures.maybeTrailingRank - 1,
       /*opSizes=*/strategy.captures.trailingOpSizes,
+      /*isTrail*/ true,
       /*numThreads=*/strategy.getNumThreadsXInBlock(),
       /*mappingAttr=*/strategy.allThreadAttrs.front());
 }

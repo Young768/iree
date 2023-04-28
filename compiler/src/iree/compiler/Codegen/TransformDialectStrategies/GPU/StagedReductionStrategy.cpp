@@ -141,6 +141,7 @@ static void buildStagedReductionStrategyThreadLevel(
         // TODO: capture and generalize mostMinorDim.
         /*mostMinorDim=*/strategy.captures.maybeLeadingRank - 1,
         /*opSizes=*/strategy.captures.leadingOpSizes,
+        /*isTrail*/ false,
         /*numThreads=*/strategy.getNumThreadsXInBlock(),
         /*mappingAttr=*/strategy.allThreadAttrs.front(),
         /*maxVectorSize=*/vectorSize);
@@ -204,6 +205,7 @@ static void buildStagedReductionStrategyThreadLevel(
         // TODO: capture and generalize mostMinorDim.
         /*mostMinorDim=*/strategy.captures.maybeTrailingRank - 1,
         /*opSizes=*/strategy.captures.trailingOpSizes,
+        /*isTrail*/ false,
         /*numThreads=*/strategy.getNumThreadsXInBlock(),
         /*mappingAttr=*/strategy.allThreadAttrs.front(),
         /*maxVectorSize=*/vectorSize);

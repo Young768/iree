@@ -79,7 +79,7 @@ std::pair<Value, Value> buildCommonTrailingStrategy(
 // underlying allocation.
 void build1DSplittingStrategyWithOptionalThreadMapping(
     ImplicitLocOpBuilder& b, Value isolatedParentOpH, Value opH, int64_t rank,
-    int64_t mostMinorDim, SmallVector<int64_t> opSizes, int64_t numThreads,
+    int64_t mostMinorDim, SmallVector<int64_t> opSizes, bool isTrail, int64_t numThreads,
     Attribute mappingAttr = Attribute(), int64_t maxVectorSize = 4);
 
 //===----------------------------------------------------------------------===//
