@@ -139,6 +139,16 @@ static void buildSmallReductionStrategyThreadDistribution(
       /*opSizes=*/strategy.captures.reductionOpSizes,
       /*isTrail*/ false,
       /*numThreads=*/1);
+  
+  //SmallVector<int64_t> scfForTileSizes(strategy.captures.reductionRank, 0);
+  //scfForTileSizes[scfForTileSizes.size() - 1] = 1;
+  
+  //auto res = iree_compiler::buildTileFuseToScfFor(
+  //    /*b=*/b,
+  //    /*isolatedParentOpH=*/variantH,
+  //    /*rootH=*/maybeBlockTrailingH,
+  //    /*opsHToFuse=*/{},
+  //    /*tileSizes=*/getAsOpFoldResult(b.getI64ArrayAttr({scfForTileSizes})));
 
   // 3. apply the 1d splitting strategy to the trailing elementwise.
   build1DSplittingStrategyWithOptionalThreadMapping(
