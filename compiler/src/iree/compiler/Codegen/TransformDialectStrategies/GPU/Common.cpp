@@ -200,7 +200,7 @@ void mlir::iree_compiler::gpu::
   SmallVector<int64_t> scfForTileSizes(rank, 0), foreachTileSizes(rank, 0);
   scfForTileSizes[mostMinorDim] = numThreads * vectorSize;
   foreachTileSizes[mostMinorDim] = numThreads;
-
+  llvm::dbgs() <<"is trail: "<< isTrail << " splitPoint: "<<splitPoint <<" vectorSize "<< vectorSize << "\n"
   // Split, tile and map the most minor dimension to `mappingAttr`.
   if (splitPoint > 0) {
     auto pdlOperation = pdl::OperationType::get(b.getContext());
@@ -463,7 +463,7 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
   }
 
   if (reductionConfig.strategy == ReductionStrategy::Staged) {
-    //return failure();
+    return failure();
     auto strategyBuilder_1 = [&](ImplicitLocOpBuilder &b, Value variant) {
       auto strategy_1 = StagedReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
