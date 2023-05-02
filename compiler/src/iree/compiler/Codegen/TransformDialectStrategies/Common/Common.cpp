@@ -235,7 +235,7 @@ buildTileFuseDistWithTileSizes(ImplicitLocOpBuilder &b, Value isolatedParentOpH,
                                ArrayAttr threadDimMapping) {
   return buildTileAndFuseAndDistributeImpl<TilingTransformOp,
                                            transform::TileSizesSpec>(
-      b, isolatedParentOpH, rootH, opsHToFuse, tileSizes, threadDimMapping);
+      b, isolatedParentOpH, rootH, opsHToFuse, tileSizes, threadDimMapping, false);
 }
 iree_compiler::TileToForallAndFuseAndDistributeResult
 mlir::iree_compiler::buildTileFuseDistToForallWithTileSizes(
