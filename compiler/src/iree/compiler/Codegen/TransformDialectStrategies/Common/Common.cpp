@@ -212,7 +212,7 @@ buildTileAndFuseAndDistributeImpl(ImplicitLocOpBuilder &b,
           b, configuration, isolatedParentOpH);
 
   // Batch fusion if requested.
-  llvm::dbgs()<< " is trailing heh? "<<isTrail <<" opsHToFuse.size: "<<opsHToFuse.size() << "\n"
+  llvm::dbgs()<< " is trailing heh? "<<isTrail <<" opsHToFuse.size: "<<opsHToFuse.size() << "\n";
   if (opsHToFuse.size() > 1) {
     Value mergedOpsH =
         b.create<MergeHandlesOp>(opsHToFuse, /*deduplicate=*/true);
