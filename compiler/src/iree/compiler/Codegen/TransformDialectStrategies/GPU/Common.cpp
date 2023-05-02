@@ -229,7 +229,8 @@ void mlir::iree_compiler::gpu::
           /*rootH=*/opH,
           /*opsHToFuse=*/{},
           /*numThreads=*/getAsOpFoldResult(b.getI64ArrayAttr(foreachTileSizes)),
-          /*threadDimMapping=*/b.getArrayAttr({mappingAttr}));
+          /*threadDimMapping=*/b.getArrayAttr({mappingAttr}),
+          isTrail);
     }
     opH = split.getSecond();
   }
@@ -252,7 +253,8 @@ void mlir::iree_compiler::gpu::
         /*rootH=*/opH,
         /*opsHToFuse=*/{},
         /*numThreads=*/getAsOpFoldResult(b.getI64ArrayAttr(foreachTileSizes)),
-        /*threadDimMapping=*/b.getArrayAttr({mappingAttr}));
+        /*threadDimMapping=*/b.getArrayAttr({mappingAttr}),
+        isTrail);
   }
 }
 

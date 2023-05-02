@@ -111,7 +111,8 @@ static void buildSmallReductionStrategyThreadDistribution(
           getAsOpFoldResult(b.getI64ArrayAttr(strategy.workgroupTileSizes)),
           /*threadDimMapping=*/
           b.getArrayAttr(
-              allThreadsRef.take_front(strategy.captures.reductionRank - 1)));
+              allThreadsRef.take_front(strategy.captures.reductionRank - 1)),
+              false);
   fillH = b.create<FuseIntoContainingOp>(fillH, tileResult.forallH);
   maybeLeadingH =
       b.create<FuseIntoContainingOp>(maybeLeadingH, tileResult.forallH);

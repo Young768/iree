@@ -198,7 +198,7 @@ buildTileAndFuseAndDistributeImpl(ImplicitLocOpBuilder &b,
                                   Value isolatedParentOpH, Value rootH,
                                   ValueRange opsHToFuse,
                                   ArrayRef<OpFoldResult> tileSizesOrNumThreads,
-                                  ArrayAttr threadDimMapping) {
+                                  ArrayAttr threadDimMapping, bool isTrail) {
   iree_compiler::TileToForallAndFuseAndDistributeResult result;
   auto tileToForeachOp = b.create<TilingTransformOp>(
       rootH, tileSizesOrNumThreads, TileOrNumThreadSpec(), threadDimMapping);
@@ -212,6 +212,7 @@ buildTileAndFuseAndDistributeImpl(ImplicitLocOpBuilder &b,
           b, configuration, isolatedParentOpH);
 
   // Batch fusion if requested.
+  llvm::dbgs()<< " is trailing heh? "<<isTrail <<" opsHToFuse.size: "<<opsHToFuse.size() << "\n"
   if (opsHToFuse.size() > 1) {
     Value mergedOpsH =
         b.create<MergeHandlesOp>(opsHToFuse, /*deduplicate=*/true);
@@ -262,18 +263,18 @@ buildTileFuseDistWithNumThreads(ImplicitLocOpBuilder &b,
                                 Value isolatedParentOpH, Value rootH,
                                 ValueRange opsHToFuse,
                                 ArrayRef<OpFoldResult> numThreads,
-                                ArrayAttr threadDimMapping) {
+                                ArrayAttr threadDimMapping, bool isTrail) {
   return buildTileAndFuseAndDistributeImpl<TilingTransformOp,
                                            transform::NumThreadsSpec>(
-      b, isolatedParentOpH, rootH, opsHToFuse, numThreads, threadDimMapping);
+      b, isolatedParentOpH, rootH, opsHToFuse, numThreads, threadDimMapping, isTrail);
 }
 iree_compiler::TileToForallAndFuseAndDistributeResult
 mlir::iree_compiler::buildTileFuseDistToForallWithNumThreads(
     ImplicitLocOpBuilder &b, Value isolatedParentOpH, Value rootH,
     ValueRange opsHToFuse, ArrayRef<OpFoldResult> tileSizes,
-    ArrayAttr threadDimMapping) {
+    ArrayAttr threadDimMapping, bool isTrail) {
   return buildTileFuseDistWithNumThreads<TileToForallOp>(
-      b, isolatedParentOpH, rootH, opsHToFuse, tileSizes, threadDimMapping);
+      b, isolatedParentOpH, rootH, opsHToFuse, tileSizes, threadDimMapping, isTrail);
 }
 iree_compiler::TileToForallAndFuseAndDistributeResult
 mlir::iree_compiler::buildTileFuseDistToForallAndWorgroupCountWithNumThreads(
@@ -281,7 +282,7 @@ mlir::iree_compiler::buildTileFuseDistToForallAndWorgroupCountWithNumThreads(
     ValueRange opsHToFuse, ArrayRef<OpFoldResult> tileSizes,
     ArrayAttr threadDimMapping) {
   return buildTileFuseDistWithNumThreads<TileToForallAndWorkgroupCountRegionOp>(
-      b, isolatedParentOpH, rootH, opsHToFuse, tileSizes, threadDimMapping);
+      b, isolatedParentOpH, rootH, opsHToFuse, tileSizes, threadDimMapping, false);
 }
 
 /// Apply patterns and vectorize.

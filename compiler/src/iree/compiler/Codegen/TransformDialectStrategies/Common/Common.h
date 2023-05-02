@@ -161,7 +161,7 @@ buildTileFuseDistToForallAndWorkgroupCountWithTileSizes(
 TileToForallAndFuseAndDistributeResult buildTileFuseDistToForallWithNumThreads(
     ImplicitLocOpBuilder &b, Value isolatedParentOpH, Value rootH,
     ValueRange opsHToFuse, ArrayRef<OpFoldResult> numThreads,
-    ArrayAttr threadDimMapping);
+    ArrayAttr threadDimMapping, bool isTrail);
 
 /// Version of `buildTileFuseDistToForallWithNumThreads` that is aware of
 /// IREE's `workgroup_count` region and should be used for the block-level
