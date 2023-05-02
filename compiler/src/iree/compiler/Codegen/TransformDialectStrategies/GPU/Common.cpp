@@ -448,7 +448,7 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
       if (!type) continue;
       if (!type.hasStaticShape()) llvm::dbgs()<< " This is dynamic op \n";
     }
-   llvm::dbgs()<< op->getOperandTypes().size() << " is the size! ";
+   //llvm::dbgs()<< op->getOperandTypes().size() << " is the size! ";
 
     //for (auto operand : op->getOperandTypes()) {
         //auto shape_type = operand.getType().dyn_cast<ShapedType>();
