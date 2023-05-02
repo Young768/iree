@@ -448,12 +448,12 @@ static LogicalResult matchAndSetReductionStrategy(func::FuncOp entryPoint,
     }
    llvm::dbgs()<< op->getOperandTypes().size() << " is the size! ";
 
-    for (auto operand : op->getOperandTypes()) {
+    //for (auto operand : op->getOperandTypes()) {
         //auto shape_type = operand.getType().dyn_cast<ShapedType>();
-        llvm::dbgs()<< operand << " debug ";
-    }
-    llvm::dbgs()<< "\n";
-    return failure();
+     //   llvm::dbgs()<< operand << " debug ";
+    //}
+    //llvm::dbgs()<< "\n";
+    //return failure();
     auto strategyBuilder_0 = [&](ImplicitLocOpBuilder &b, Value variant) {
       auto strategy_0 = SmallReductionStrategy::create(op->getContext(), captures,
                                                      reductionConfig);
