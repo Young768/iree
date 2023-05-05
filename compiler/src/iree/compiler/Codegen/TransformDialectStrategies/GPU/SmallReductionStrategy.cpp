@@ -98,6 +98,7 @@ static void buildSmallReductionStrategyThreadDistribution(
     ImplicitLocOpBuilder &b, Value variantH, Value maybeLeadingH, Value fillH,
     Value reductionH, Value maybeTrailingH,
     const AbstractReductionStrategy &strategy) {
+  llvm::dbgs() <<" debug ****"<< strategy.getNumThreadsXInBlock() << "\n";
   auto [fusionTargetH, fusionGroupH] =
       iree_compiler::buildSelectFirstNonEmpty(b, maybeTrailingH, reductionH);
   ArrayRef<Attribute> allThreadsRef(strategy.allThreadAttrs);
@@ -113,6 +114,7 @@ static void buildSmallReductionStrategyThreadDistribution(
           b.getArrayAttr(
               allThreadsRef.take_front(strategy.captures.reductionRank - 1)),
               false);
+  llvm::dbgs() <<" debug ~~~~~~~~"<< strategy.getNumThreadsXInBlock() << "\n";
   fillH = b.create<FuseIntoContainingOp>(fillH, tileResult.forallH);
   maybeLeadingH =
       b.create<FuseIntoContainingOp>(maybeLeadingH, tileResult.forallH);
@@ -152,6 +154,8 @@ static void buildSmallReductionStrategyThreadDistribution(
   //    /*tileSizes=*/getAsOpFoldResult(b.getI64ArrayAttr({scfForTileSizes})));
 
   // 3. apply the 1d splitting strategy to the trailing elementwise.
+  llvm::dbgs() <<" debug -----"<< strategy.getNumThreadsXInBlock() << "\n";
+
   build1DSplittingStrategyWithOptionalThreadMapping(
       /*b=*/b,
       /*isolatedParentOpH=*/variantH,
