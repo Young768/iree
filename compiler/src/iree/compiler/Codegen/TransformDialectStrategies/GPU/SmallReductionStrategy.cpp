@@ -98,7 +98,11 @@ static void buildSmallReductionStrategyThreadDistribution(
     ImplicitLocOpBuilder &b, Value variantH, Value maybeLeadingH, Value fillH,
     Value reductionH, Value maybeTrailingH,
     const AbstractReductionStrategy &strategy) {
-  llvm::dbgs() <<" debug ****"<< strategy.getNumThreadsXInBlock() <<" strategy.workgroupTileSizes "<<strategy.workgroupTileSizes<< "\n";
+  llvm::dbgs() <<" debug ****"<< strategy.getNumThreadsXInBlock() <<"\n";
+  for (auto [argIndex, arg] : llvm::enumerate(strategy.workgroupTileSizes)) {
+    llvm::dbgs() <<" debug strategy.workgroupTileSizes: "<<argIndex <<" "<< arg <<"\n";
+  }
+
   auto [fusionTargetH, fusionGroupH] =
       iree_compiler::buildSelectFirstNonEmpty(b, maybeTrailingH, reductionH);
   ArrayRef<Attribute> allThreadsRef(strategy.allThreadAttrs);
