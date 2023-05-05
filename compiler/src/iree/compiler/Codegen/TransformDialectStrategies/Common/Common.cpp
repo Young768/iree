@@ -213,6 +213,11 @@ buildTileAndFuseAndDistributeImpl(ImplicitLocOpBuilder &b,
 
   // Batch fusion if requested.
   llvm::dbgs()<< " is trailing heh? "<<isTrail <<" opsHToFuse.size: "<<opsHToFuse.size() << "\n";
+
+  for (auto [index, attr] : llvm::enumerate(threadDimMapping.value()))
+  {
+    llvm::dbgs()<<" index: "<<index <<" attr: "<<attr<<"\n";
+  }
   if (opsHToFuse.size() > 1) {
     Value mergedOpsH =
         b.create<MergeHandlesOp>(opsHToFuse, /*deduplicate=*/true);
