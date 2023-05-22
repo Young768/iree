@@ -523,6 +523,27 @@ static bool isFusableWithConsumer(
   return true;
 }
 
+/// Check if the operation is a simple elementwise broadcast or transpose.
+static bool isBroadcastOrTranspose(linalg::GenericOp genericOp) {
+  if (genericOp.getNumParallelLoops() != genericOp.getNumLoops()) {
+    return false;
+  }
+  if (genericOp.getNumDpsInputs() != 1 || genericOp.getNumDpsInits() != 1) {
+    return false;
+  }
+  if (llvm::any_of(genericOp.getIndexingMapsArray(), [](AffineMap map) {
+        return !map.isProjectedPermutation();
+      })) {
+    return false;
+  }
+  if (!llvm::hasSingleElement(*genericOp.getBody())) {
+    return false;
+  }
+  auto yieldedVal =
+      genericOp.getBody()->front().getOperand(0).dyn_cast<BlockArgument>();
+  return yieldedVal && yieldedVal.getArgNumber() == 0;
+}
+
 /// Fuses roots with its consumers. If a root is fused with its consumer, it is
 /// no more tagged as a root to aid with the dispatch region formation.
 static void fuseRootsWithConsumers(MLIRContext *context,
@@ -609,10 +630,10 @@ static bool isFusableWithProducer(
 
   auto consumerLinalgOp = cast<linalg::LinalgOp>(consumer);
   if (consumerLinalgOp.isDpsInput(&operand)) {
-    // Only fuse on inputs if both ops are generic ops.
-    if (!isa<linalg::GenericOp>(consumer) ||
-        !isa<linalg::GenericOp>(producer)) {
-      return false;
+    // Fuse on inputs if the input is a broadcast or transpose.
+    auto genericOp = dyn_cast<linalg::GenericOp>(producer);
+    if (genericOp && isBroadcastOrTranspose(genericOp)) {
+      return true;
     }
   } else if (!consumerLinalgOp.isDpsInit(&operand)) {
     return false;
