@@ -593,6 +593,8 @@ static void fuseRootsWithConsumers(MLIRContext *context,
 static bool isFusableWithProducer(
     OpOperand &operand, const llvm::SmallBitVector &rootOuterParallelLoops,
     FormDispatchRegionsOptions const &options) {
+
+  llvm::dbgs() << "########################################## running into fusion.!"<< "\n";
   Operation *producer = operand.get().getDefiningOp();
   Operation *consumer = operand.getOwner();
 
