@@ -25,6 +25,7 @@
 #include "mlir/IR/Matchers.h"
 #include "mlir/Interfaces/DestinationStyleOpInterface.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
+#include "mlir/Dialect/Tensor/Transforms/Transforms.h"
 
 using mlir::iree_compiler::IREE::LinalgExt::TilingPatterns;
 
@@ -331,6 +332,7 @@ struct GPUTensorTilePass : public GPUTensorTileBase<GPUTensorTilePass> {
     // Run some patterns that fold away a few operations.
     {
       RewritePatternSet opFoldingPatterns(&getContext());
+      linalg::populateLinalgTilingCanonicalizationPatterns(opFoldingPatterns);
       tensor::populateFoldTensorEmptyPatterns(opFoldingPatterns);
       if (failed(applyPatternsAndFoldGreedily(funcOp,
                                               std::move(opFoldingPatterns)))) {
