@@ -328,6 +328,17 @@ struct GPUTensorTilePass : public GPUTensorTileBase<GPUTensorTilePass> {
       funcOp.dump();
     });
 
+    // Run some patterns that fold away a few operations.
+    {
+      RewritePatternSet opFoldingPatterns(&getContext());
+      tensor::populateFoldTensorEmptyPatterns(opFoldingPatterns);
+      if (failed(applyPatternsAndFoldGreedily(funcOp,
+                                              std::move(opFoldingPatterns)))) {
+        funcOp->emitError("failed to apply op folding patterns");
+        return signalPassFailure();
+      }
+    }
+
     if (failed(tileAndUnrollConv(funcOp))) {
       return signalPassFailure();
     }
