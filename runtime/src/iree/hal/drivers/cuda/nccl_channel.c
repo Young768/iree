@@ -10,7 +10,6 @@
 #include <stdlib.h>
 
 #include "iree/base/api.h"
-#include "iree/base/tracing.h"
 #include "iree/hal/drivers/cuda/cuda_buffer.h"
 #include "iree/hal/drivers/cuda/status_util.h"
 #include "third_party/nccl/nccl.h"
@@ -53,6 +52,11 @@ typedef struct iree_hal_cuda_nccl_channel_t {
   iree_hal_resource_t resource;
   iree_hal_cuda_context_wrapper_t* context_wrapper;
 
+  // Parent channel this was split from, if any.
+  // This is only used to keep the parent channel live for as long as there are
+  // any split channels live (including transitive splits).
+  iree_hal_channel_t* parent_channel;
+
   // Hash of the unique ID used to create the communicator.
   // This is consistent with the hashes NCCL itself uses for logging but is not
   // guaranteed to be unique - only use for informational purposes.
@@ -87,9 +91,9 @@ iree_status_t iree_hal_cuda_nccl_channel_create(
   IREE_TRACE_ZONE_BEGIN(z0);
 
   IREE_TRACE(const uint64_t id_hash = iree_hal_cuda_nccl_hash_id(id));
-  IREE_TRACE_ZONE_APPEND_VALUE(z0, id_hash);
-  IREE_TRACE_ZONE_APPEND_VALUE(z0, rank);
-  IREE_TRACE_ZONE_APPEND_VALUE(z0, count);
+  IREE_TRACE_ZONE_APPEND_VALUE_I64(z0, id_hash);
+  IREE_TRACE_ZONE_APPEND_VALUE_I64(z0, rank);
+  IREE_TRACE_ZONE_APPEND_VALUE_I64(z0, count);
 
   ncclComm_t comm = NULL;
   ncclConfig_t config = NCCL_CONFIG_INITIALIZER;
@@ -124,9 +128,9 @@ static void iree_hal_cuda_nccl_channel_destroy(
       iree_hal_cuda_nccl_channel_cast(base_channel);
   iree_allocator_t host_allocator = channel->context_wrapper->host_allocator;
   IREE_TRACE_ZONE_BEGIN(z0);
-  IREE_TRACE_ZONE_APPEND_VALUE(z0, channel->id_hash);
-  IREE_TRACE_ZONE_APPEND_VALUE(z0, channel->rank);
-  IREE_TRACE_ZONE_APPEND_VALUE(z0, channel->count);
+  IREE_TRACE_ZONE_APPEND_VALUE_I64(z0, channel->id_hash);
+  IREE_TRACE_ZONE_APPEND_VALUE_I64(z0, channel->rank);
+  IREE_TRACE_ZONE_APPEND_VALUE_I64(z0, channel->count);
 
   // TODO(#9580): support async tear down
   // We could be smarter about starting finalization of all channels async and
@@ -145,6 +149,8 @@ static void iree_hal_cuda_nccl_channel_destroy(
 
   NCCL_IGNORE_ERROR(channel->context_wrapper->syms,
                     ncclCommDestroy(channel->comm));
+
+  iree_hal_channel_release(channel->parent_channel);
   iree_allocator_free(host_allocator, channel);
 
   IREE_TRACE_ZONE_END(z0);
@@ -188,6 +194,8 @@ static iree_status_t iree_hal_cuda_nccl_channel_split(
     iree_hal_resource_initialize(&iree_hal_cuda_nccl_channel_vtable,
                                  &split_channel->resource);
     split_channel->context_wrapper = channel->context_wrapper;
+    split_channel->parent_channel = base_channel;
+    iree_hal_channel_retain(base_channel);
     split_channel->rank = split_rank;
     split_channel->count = split_count;
     split_channel->comm = split_comm;
@@ -509,22 +517,22 @@ iree_status_t iree_hal_cuda_nccl_submit_batch(
   IREE_ASSERT_ARGUMENT(batch);
   IREE_ASSERT_ARGUMENT(stream);
 
+#if IREE_TRACING_FEATURES & IREE_TRACING_FEATURE_INSTRUMENTATION_DEVICE
   // Begin one zone for each entry in the batch. Each entry will show stacked on
   // top of each other and unfortunately use independent CUDA events. We could
   // optimize this by changing the tracing context to expose an API with event
   // reservation and then zone commit using an existing event.
-  IREE_TRACE({
-    iree_bitfield_string_temp_t string_temp;
-    for (iree_host_size_t i = 0; i < batch->count; ++i) {
-      iree_hal_collective_batch_entry_t* entry = &batch->entries[i];
-      iree_string_view_t collective_str =
-          iree_hal_collective_op_format(&entry->op, &string_temp);
-      IREE_CUDA_TRACE_ZONE_BEGIN_EXTERNAL(
-          tracing_context, stream, __FILE__, strlen(__FILE__),
-          (uint32_t)__LINE__, __FUNCTION__, strlen(__FUNCTION__),
-          collective_str.data, collective_str.size);
-    }
-  });
+  iree_bitfield_string_temp_t string_temp;
+  for (iree_host_size_t i = 0; i < batch->count; ++i) {
+    iree_hal_collective_batch_entry_t* entry = &batch->entries[i];
+    iree_string_view_t collective_str =
+        iree_hal_collective_op_format(&entry->op, &string_temp);
+    IREE_CUDA_TRACE_ZONE_BEGIN_EXTERNAL(
+        tracing_context, stream, __FILE__, strlen(__FILE__), (uint32_t)__LINE__,
+        __FUNCTION__, strlen(__FUNCTION__), collective_str.data,
+        collective_str.size);
+  }
+#endif  // IREE_TRACING_FEATURES & IREE_TRACING_FEATURE_INSTRUMENTATION_DEVICE
 
   // Issue all collective operations in the batch as part of a group.
   // NCCL may be able to fuse or reduce overheads by issuing like this.
@@ -535,13 +543,13 @@ iree_status_t iree_hal_cuda_nccl_submit_batch(
   }
   NCCL_RETURN_IF_ERROR(context->syms, ncclGroupEnd(), "ncclGroupEnd");
 
+#if IREE_TRACING_FEATURES & IREE_TRACING_FEATURE_INSTRUMENTATION_DEVICE
   // End all zones we began above - note that these are just simply nested so
   // order doesn't matter so long as we end the right number of zones.
-  IREE_TRACE({
-    for (iree_host_size_t i = 0; i < batch->count; ++i) {
-      IREE_CUDA_TRACE_ZONE_END(tracing_context, stream);
-    }
-  });
+  for (iree_host_size_t i = 0; i < batch->count; ++i) {
+    IREE_CUDA_TRACE_ZONE_END(tracing_context, stream);
+  }
+#endif  // IREE_TRACING_FEATURES & IREE_TRACING_FEATURE_INSTRUMENTATION_DEVICE
 
   return iree_ok_status();
 }

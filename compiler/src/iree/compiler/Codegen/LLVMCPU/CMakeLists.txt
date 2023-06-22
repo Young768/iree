@@ -18,6 +18,7 @@ iree_cc_library(
     "KernelDispatch.h"
     "LLVMCPUPasses.h"
     "TargetMLTransformInfo.h"
+    "TileSizeSelection.h"
     "Utils.h"
   SRCS
     "ConvertToLLVM.cpp"
@@ -43,6 +44,7 @@ iree_cc_library(
     "LLVMCPUVectorization.cpp"
     "Passes.cpp"
     "TargetMLTransformInfo.cpp"
+    "TileSizeSelection.cpp"
     "Utils.cpp"
     "VectorContractCustomKernels.cpp"
     "VerifyLinalgTransformLegality.cpp"
@@ -110,7 +112,7 @@ iree_cc_library(
     iree::compiler::Codegen::Interfaces::PartitionableLoopsInterface
     iree::compiler::Codegen::Interfaces::UKernelOpInterface
     iree::compiler::Codegen::PassHeaders
-    iree::compiler::Codegen::TransformDialectStrategies::CPU::TransformDialectStrategies
+    iree::compiler::Codegen::TransformStrategies::CPU
     iree::compiler::Codegen::Transforms
     iree::compiler::Codegen::Utils
     iree::compiler::Codegen::VMVX
